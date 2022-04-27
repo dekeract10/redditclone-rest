@@ -37,10 +37,6 @@ public class User {
 
     @Column(name = "email", unique = true, nullable = true)
     private String email;
-
-//    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-//    private Set<Comment> comments = new java.util.LinkedHashSet<>();
-
     @Column(name = "avatar")
     private String avatar;
 
@@ -52,21 +48,4 @@ public class User {
 
     @Column(name = "display_name")
     private String displayName;
-
-//    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-//    private Set<Reaction> reactions = new java.util.LinkedHashSet<>();
-//
-//    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-//    private Set<Post> posts = new java.util.LinkedHashSet<>();
-//
-//    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-//    private Set<Banned> bans = new java.util.LinkedHashSet<>();
-
-//    public Set<Banned> getBans() {
-//        return bans;
-//    }
-//
-//    public void setBans(Set<Banned> bans) {
-//        this.bans = bans;
-//    }
 }

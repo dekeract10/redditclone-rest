@@ -26,21 +26,4 @@ public class Banned {
     @ManyToOne
     @JoinColumn(name = "user", nullable = false)
     private User user;
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
-
-    public UUID getId() {
-        return id;
-    }
-
-    public void setId(UUID id) {
-        this.id = id;
-    }
-
 }

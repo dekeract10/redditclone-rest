@@ -18,28 +18,9 @@ public class Flair {
     }
 
     @Id
-//    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id", nullable = false, columnDefinition = "BINARY(16)")
     private UUID id;
 
-    @ManyToOne
-    @JoinColumn(name = "post_id", nullable = false)
-    private Post post;
-
-    public Post getPost() {
-        return post;
-    }
-
-    public void setPost(Post post) {
-        this.post = post;
-    }
-
-    public UUID getId() {
-        return id;
-    }
-
-    public void setId(UUID id) {
-        this.id = id;
-    }
-
+    @Column(name = "name", nullable = false)
+    private String name;
 }

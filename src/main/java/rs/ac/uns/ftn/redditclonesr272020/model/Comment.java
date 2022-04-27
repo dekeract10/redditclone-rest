@@ -6,6 +6,7 @@ import lombok.Setter;
 import rs.ac.uns.ftn.redditclonesr272020.configuration.MyIdGenerator;
 
 import javax.persistence.*;
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Entity
@@ -23,24 +24,24 @@ public class Comment {
     @Column(name = "comment_id", nullable = false, columnDefinition = "BINARY(16)")
     private UUID id;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    public User getUser() {
-        return user;
-    }
+    @Column(name = "text")
+    private String text;
 
-    public void setUser(User user) {
-        this.user = user;
-    }
+    @Column(name = "timestamp")
+    private LocalDate timestamp;
 
-    public UUID getId() {
-        return id;
-    }
+    @Column(name = "is_deleted")
+    private boolean isDeleted;
 
-    public void setId(UUID id) {
-        this.id = id;
-    }
+    @ManyToOne
+    @JoinColumn(name = "replies_to", nullable = true)
+    private Comment repliesTo;
 
+    @ManyToOne
+    @JoinColumn(name = "post", nullable = false)
+    private Post post;
 }

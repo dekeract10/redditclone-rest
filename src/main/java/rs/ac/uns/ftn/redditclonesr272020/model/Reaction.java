@@ -22,20 +22,19 @@ public class Reaction {
     @Column(name = "reaction_id", nullable = false, columnDefinition = "BINARY(16)")
     private UUID id;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "reaction_type", nullable = false)
+    private ReactionType reactionType;
+
     @ManyToOne
     @JoinColumn(name = "user", nullable = false)
     private User user;
 
     @ManyToOne
-    @JoinColumn(name = "post", nullable = false)
+    @JoinColumn(name = "post", nullable = true)
     private Post post;
 
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
+    @ManyToOne
+    @JoinColumn(name = "comment", nullable = true)
+    private Comment comment;
 }
