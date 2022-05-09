@@ -1,4 +1,4 @@
-package rs.ac.uns.ftn.redditclonesr272020.model;
+package rs.ac.uns.ftn.redditclonesr272020.model.dto;
 
 
 import lombok.Data;

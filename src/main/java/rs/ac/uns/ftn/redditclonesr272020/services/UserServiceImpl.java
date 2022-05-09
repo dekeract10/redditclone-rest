@@ -5,22 +5,27 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import rs.ac.uns.ftn.redditclonesr272020.exceptions.UsernameTakenException;
 import rs.ac.uns.ftn.redditclonesr272020.model.User;
-import rs.ac.uns.ftn.redditclonesr272020.model.UserDto;
+import rs.ac.uns.ftn.redditclonesr272020.model.dto.UserDto;
 import rs.ac.uns.ftn.redditclonesr272020.repositories.UserRepository;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.transaction.Transactional;
 import java.time.LocalDate;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
 public class UserServiceImpl implements UserService {
     private UserRepository userRepository;
-    private PasswordEncoder passwordEncoder;
 
     @Autowired
-    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public void setUserRepository(UserRepository userRepository) {
         this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
     }
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @Override
     public void saveUser(User user) {
@@ -28,15 +33,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User findUserByUsername(String username) {
+    public Optional<User> findUserByUsername(String username) {
         return userRepository.findByUsername(username);
     }
 
     @Override
     public UUID createUser(UserDto user) throws UsernameTakenException {
-        if (userRepository.findByUsername(user.getUsername()) != null) {
+        if (userRepository.findByUsername(user.getUsername()).isPresent())
             throw new UsernameTakenException();
-        };
 
         User newUser = new User();
         newUser.setEmail(user.getEmail());
@@ -52,5 +56,27 @@ public class UserServiceImpl implements UserService {
     @Override
     public User findUserById(UUID id) {
         return userRepository.findById(id).orElse(null);
+    }
+
+    @Override
+    public Iterable<User> findAll() {
+        return userRepository.findAll();
+    }
+
+    @Override
+    @Transactional
+    public User update(User user) {
+        return userRepository.save(user);
+    }
+    @PersistenceContext EntityManager em;
+
+    @Override
+    @Transactional
+    public void makeModerator(User user){
+        em.createNativeQuery("UPDATE user SET TYPE = ?" +
+            "WHERE user_id = ?")
+            .setParameter(1, "mod")
+                .setParameter(2, user.getId())
+                .executeUpdate();
     }
 }

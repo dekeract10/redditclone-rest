@@ -9,6 +9,7 @@ import javax.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -37,8 +38,8 @@ public class Post {
     @Column(name = "image_path", nullable = true)
     private String imagePath;
 
-    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    private List<Flair> flairs = new java.util.ArrayList<>();
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private Set<Flair> flairs = new java.util.HashSet<>();
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)

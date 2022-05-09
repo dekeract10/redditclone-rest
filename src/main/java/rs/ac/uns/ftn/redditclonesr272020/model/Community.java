@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import rs.ac.uns.ftn.redditclonesr272020.configuration.MyIdGenerator;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.*;
 
@@ -13,12 +14,17 @@ import java.util.*;
 @Getter
 @Setter
 @AllArgsConstructor
-public class Community {
+public class Community implements Serializable {
+    public Community() {
+        super();
+        this.id = MyIdGenerator.generateId();
+    }
+
     @Id
     @Column(name = "id", nullable = false, columnDefinition = "BINARY(16)")
     private UUID id;
 
-    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @ManyToMany(cascade = {CascadeType.MERGE} , fetch = FetchType.LAZY)
     @JoinTable(name = "moderates", joinColumns = @JoinColumn(name = "community_id"), inverseJoinColumns = @JoinColumn(name = "user_id"))
     private Set<Moderator> moderators = new HashSet<>();
 
@@ -26,7 +32,11 @@ public class Community {
     @JoinTable(name = "flair_community", joinColumns = @JoinColumn(name = "community_id"), inverseJoinColumns = @JoinColumn(name = "flair_id"))
     private Set<Flair> flairs = new HashSet<>();
 
-    @Column(name = "name", nullable = false)
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private Set<Post> posts = new HashSet<>();
+
+
+    @Column(name = "name", nullable = false, unique = true)
     private String name;
 
     @Column(name = "description", nullable = false)
@@ -45,8 +55,16 @@ public class Community {
     @Column(name = "suspension_reason", nullable = true)
     private String suspensionReason;
 
-    public Community() {
-        super();
-        this.id = MyIdGenerator.generateId();
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Community)) return false;
+        Community community = (Community) o;
+        return id.equals(community.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }
