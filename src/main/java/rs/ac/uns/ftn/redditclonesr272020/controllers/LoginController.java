@@ -12,10 +12,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import rs.ac.uns.ftn.redditclonesr272020.dto.UserLoginDTO;
 import rs.ac.uns.ftn.redditclonesr272020.security.TokenUtils;
 import rs.ac.uns.ftn.redditclonesr272020.services.UserService;
@@ -37,6 +34,11 @@ public class LoginController {
     private TokenUtils tokenUtils;
 
     private Logger logger = LoggerFactory.getLogger(LoginController.class);
+
+    @GetMapping("refresh")
+    public ResponseEntity<String> refreshToken(Authentication authentication) {
+        return ResponseEntity.ok().body( tokenUtils.generateToken(userDetailsService.loadUserByUsername(authentication.getName())));
+    }
 
     @PostMapping()
     public ResponseEntity<String> login(@RequestBody UserLoginDTO userDto) {

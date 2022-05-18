@@ -22,16 +22,19 @@ public class CommunityServiceImpl implements CommunityService {
     private UserService userService;
 
     @Override
+    @Transactional
     public Community save(Community community) {
         return communityRepository.save(community);
     }
 
     @Override
+    @Transactional
     public Optional<Community> findById(UUID id) {
         return communityRepository.findById(id);
     }
 
     @Override
+    @Transactional
     public Optional<Community> findByName(String communityName) {
         return communityRepository.findByName(communityName);
     }
@@ -43,41 +46,15 @@ public class CommunityServiceImpl implements CommunityService {
     }
 
     @Override
+    @Transactional
     public Community createCommunity(CommunityDto communityDto, String username) {
-        Set<Moderator> moderators = new HashSet<>();
-        var creatorOpt = userService.findUserByUsername(username);
-        if (creatorOpt.isEmpty())
-            throw new UsernameNotFoundException("User with username not found");
-
-        var creator = creatorOpt.get();
-//        Moderator moderator = null;
-//        if (creator instanceof Moderator) {
-//            moderators.add((Moderator) creator);
-//        } else {
-//            moderator = new Moderator();
-//
-//            moderator.setUsername(creator.getUsername());
-//            moderator.setId(creator.getId());
-//            moderator.setEmail(creator.getEmail());
-//            moderator.setPassword(creator.getPassword());
-//            moderator.setDescription(creator.getDescription());
-//            moderator.setAvatar(creator.getAvatar());
-//            moderator.setRegistrationDate(creator.getRegistrationDate());
-//            moderator.setDisplayName(creator.getDisplayName());
-//            moderator.setId(creator.getId());
-//            moderator.setBans(creator.getBans());
-//
-//            moderators.add(moderator);
-//        }
-
-
         var rules = new ArrayList<Rule>();
         for (var rule : communityDto.getRules()) {
             rules.add(new Rule(rule));
         }
 
-        userService.makeModerator(creator);
-        var newModerator = (Moderator)userService.findUserById(creator.getId());
+        Set<Moderator> moderators = new HashSet<>();
+        var newModerator = userService.makeModerator(username);
         moderators.add(newModerator);
 
         var community = new Community();
@@ -92,7 +69,20 @@ public class CommunityServiceImpl implements CommunityService {
     }
 
     @Override
+    @Transactional
     public Iterable<Community> findAll() {
         return communityRepository.findAll();
+    }
+
+    @Override
+    @Transactional
+    public Optional<Community> findCommunityByName(String communityName) {
+        return communityRepository.findByName(communityName);
+    }
+
+    @Override
+    @Transactional
+    public Community update(Community community) {
+        return communityRepository.save(community);
     }
 }

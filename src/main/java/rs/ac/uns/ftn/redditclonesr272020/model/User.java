@@ -76,19 +76,4 @@ public class User implements Serializable {
     public int hashCode() {
         return Objects.hash(id);
     }
-
-    public Moderator toModerator() {
-        Moderator moderator = new Moderator();
-        moderator.setId(this.getId());
-        moderator.setEmail(this.getEmail());
-        moderator.setUsername(this.getUsername());
-        moderator.setPassword(this.getPassword());
-        moderator.setAvatar(this.getAvatar());
-        moderator.setRegistrationDate(this.getRegistrationDate());
-        moderator.setDescription(this.getDescription());
-        moderator.setDisplayName(this.getDisplayName());
-        moderator.setBans(this.getBans());
-
-        return moderator;
-    }
 }

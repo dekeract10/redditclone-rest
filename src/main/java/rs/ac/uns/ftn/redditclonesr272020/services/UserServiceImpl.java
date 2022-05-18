@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import rs.ac.uns.ftn.redditclonesr272020.exceptions.UsernameTakenException;
+import rs.ac.uns.ftn.redditclonesr272020.model.Moderator;
 import rs.ac.uns.ftn.redditclonesr272020.model.User;
 import rs.ac.uns.ftn.redditclonesr272020.model.dto.UserDto;
 import rs.ac.uns.ftn.redditclonesr272020.repositories.UserRepository;
@@ -71,12 +72,12 @@ public class UserServiceImpl implements UserService {
     @PersistenceContext EntityManager em;
 
     @Override
-    @Transactional
-    public void makeModerator(User user){
-        em.createNativeQuery("UPDATE user SET TYPE = ?" +
-            "WHERE user_id = ?")
+    public Moderator makeModerator(String username){
+        em.createNativeQuery("UPDATE user u SET TYPE = ?" +
+            " WHERE u.username LIKE ?")
             .setParameter(1, "mod")
-                .setParameter(2, user.getId())
+                .setParameter(2, username)
                 .executeUpdate();
+        return (Moderator)userRepository.findByUsername(username).get();
     }
 }

@@ -2,6 +2,7 @@ package rs.ac.uns.ftn.redditclonesr272020.services;
 
 import org.springframework.stereotype.Service;
 import rs.ac.uns.ftn.redditclonesr272020.exceptions.UsernameTakenException;
+import rs.ac.uns.ftn.redditclonesr272020.model.Moderator;
 import rs.ac.uns.ftn.redditclonesr272020.model.User;
 import rs.ac.uns.ftn.redditclonesr272020.model.dto.UserDto;
 
@@ -23,6 +24,5 @@ public interface UserService {
 
     User update(User user);
 
-    @Transactional
-    void makeModerator(User user);
+    Moderator makeModerator(String username);
 }
