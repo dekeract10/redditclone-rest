@@ -102,16 +102,22 @@ public class CommunityController {
 
     @GetMapping("/{name}/posts")
     @Transactional
-    public ResponseEntity<Iterable<PostListDto>> getCommunityPosts(@PathVariable String name) {
+    public ResponseEntity<Iterable<PostListDto>> getCommunityPosts(@PathVariable String name, Authentication auth) {
         var posts = postService.findPostsByCommunityName(name);
         var postListConverter = new PostListConverter();
         var postDtos = new ArrayList<PostListDto>();
         for (var post : posts) {
-            var commentCount = commentService.getCountByPostId(post.getId());
             var postDto = postListConverter.toDto(post);
+
+            var commentCount = commentService.getCountByPostId(post.getId());
             postDto.setCommentCount(commentCount);
+
             int karma = reactionService.getPostKarma(postDto.getId());
             postDto.setKarma(karma);
+
+            var userReaction = reactionService.findByUserAndPost(auth.getName(), post.getId());
+            userReaction.ifPresent(reaction -> postDto.setReaction(reaction.getReactionType()));
+
             postDtos.add(postDto);
         }
         return ResponseEntity.ok(postDtos);

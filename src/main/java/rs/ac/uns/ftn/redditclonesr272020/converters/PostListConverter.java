@@ -19,7 +19,8 @@ public class PostListConverter implements Converter<Post, PostListDto> {
                 p.getImagePath(),
                 p.getFlairs().stream().map(Flair::getName).collect(Collectors.toSet()),
                 p.getUser().getUsername(),
-                p.getUser().getDisplayName()
+                p.getUser().getDisplayName(),
+                p.getCommunity().getName()
                 );
     }
 }

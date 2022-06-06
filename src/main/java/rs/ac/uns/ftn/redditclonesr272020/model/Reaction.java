@@ -8,7 +8,7 @@ import javax.persistence.*;
 import java.util.UUID;
 
 @Entity
-@Table(name = "reaction", uniqueConstraints = { @UniqueConstraint(columnNames = { "user", "post" })})
+@Table(name = "reaction", uniqueConstraints = { @UniqueConstraint(columnNames = { "user", "post", "comment" })})
 @Getter
 @Setter
 public class Reaction {

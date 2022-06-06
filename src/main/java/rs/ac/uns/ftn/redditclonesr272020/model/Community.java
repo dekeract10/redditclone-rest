@@ -33,6 +33,7 @@ public class Community implements Serializable {
     private Set<Flair> flairs = new HashSet<>();
 
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinColumn(name = "community_id")
     private Set<Post> posts = new HashSet<>();
 
 

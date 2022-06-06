@@ -2,7 +2,6 @@ package rs.ac.uns.ftn.redditclonesr272020.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import rs.ac.uns.ftn.redditclonesr272020.exceptions.CommunityNonExistentException;
 import rs.ac.uns.ftn.redditclonesr272020.model.Post;
 import rs.ac.uns.ftn.redditclonesr272020.repositories.CommunityRepository;
 import rs.ac.uns.ftn.redditclonesr272020.repositories.FlairRepository;
@@ -58,5 +57,22 @@ public class PostServiceImpl implements PostService {
             return new HashSet<>();
         else
             return community.get().getPosts();
+    }
+
+    @Override
+    @Transactional
+    public Optional<Post> findById(UUID id) {
+        return postRepository.findById(id);
+    }
+
+    @Override
+    @Transactional
+    public void delete(Post post) {
+        postRepository.delete(post);
+    }
+
+    @Override
+    public Iterable<Post> findPostsByUser(String username) {
+        return postRepository.findAllByUserUsername(username);
     }
 }

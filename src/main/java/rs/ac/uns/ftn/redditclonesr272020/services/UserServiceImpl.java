@@ -40,7 +40,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UUID createUser(UserDto user) throws UsernameTakenException {
-        if (userRepository.findByUsername(user.getUsername()).isPresent())
+        if (userRepository.existsUserByUsername(user.getUsername()))
             throw new UsernameTakenException();
 
         User newUser = new User();

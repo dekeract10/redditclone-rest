@@ -38,6 +38,9 @@ public class Post {
     @Column(name = "image_path", nullable = true)
     private String imagePath;
 
+    @ManyToOne
+    private Community community;
+
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Set<Flair> flairs = new java.util.HashSet<>();
 
