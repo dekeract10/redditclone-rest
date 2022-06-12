@@ -20,7 +20,7 @@ public class ImageController {
     Logger logger = LoggerFactory.getLogger(ImageController.class);
 
     @PostMapping
-    public ResponseEntity<String> uploadImage(@RequestParam MultipartFile image) {
+    public ResponseEntity<String> uploadImage(@RequestParam(value = "image") MultipartFile image) {
         logger.info("Uploading image {}", image);
         try {
             var imgPath = imageService.saveImage(image);
@@ -33,7 +33,6 @@ public class ImageController {
     public ResponseEntity<Resource> getImage(@PathVariable("img") String imgPath){
         try{
             var file = imageService.getImage(imgPath);
-
             if (file.isEmpty())
                 return ResponseEntity.notFound().build();
 

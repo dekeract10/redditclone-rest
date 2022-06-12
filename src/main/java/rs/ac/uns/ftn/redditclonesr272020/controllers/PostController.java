@@ -55,18 +55,15 @@ public class PostController {
     @Transactional
     public ResponseEntity<String> createPost(@Valid @RequestBody PostDto postDto, BindingResult result, Authentication authentication) {
         // Initial checks to validate entity
-        if (result.hasErrors())
-            return ResponseEntity.badRequest().body("Post is not valid");
+        if (result.hasErrors()) return ResponseEntity.badRequest().body("Post is not valid");
         if (postDto.getImagePath() == null && postDto.getText() == null)
             return ResponseEntity.badRequest().body("Post must have either text or image");
 
         var author = userService.findUserByUsername(authentication.getName());
-        if (author.isEmpty())
-            return ResponseEntity.badRequest().body("User is not valid");
+        if (author.isEmpty()) return ResponseEntity.badRequest().body("User is not valid");
 
         var community = communityService.findCommunityByName(postDto.getCommunityName());
-        if (community.isEmpty())
-            return ResponseEntity.badRequest().body("Community is not valid");
+        if (community.isEmpty()) return ResponseEntity.badRequest().body("Community is not valid");
 
         Iterable<Flair> flairs = flairService.findAllById(postDto.getFlairs());
         Set<Flair> postFlairs = new HashSet<>();
@@ -104,8 +101,7 @@ public class PostController {
         }
 
         var post = postService.findById(uuid);
-        if (post.isEmpty())
-            return ResponseEntity.badRequest().body("Post doesn't exist");
+        if (post.isEmpty()) return ResponseEntity.badRequest().body("Post doesn't exist");
 
         String author = post.get().getUser().getUsername();
         if (!author.equals(authentication.getName()))
@@ -118,11 +114,9 @@ public class PostController {
     }
 
     @PutMapping("{id}")
-    public ResponseEntity<String> updatePost(@PathVariable("id") String id, Authentication authentication,
-                                             @RequestBody PostUpdateDto postDto, BindingResult result) {
+    public ResponseEntity<String> updatePost(@PathVariable("id") String id, Authentication authentication, @RequestBody PostUpdateDto postDto, BindingResult result) {
         // post is valid
-        if (result.hasErrors())
-            return ResponseEntity.badRequest().body("Invalid JSON");
+        if (result.hasErrors()) return ResponseEntity.badRequest().body("Invalid JSON");
 
         UUID uuid;
         try {
@@ -132,8 +126,7 @@ public class PostController {
         }
 
         var post = postService.findById(uuid);
-        if (post.isEmpty())
-            return ResponseEntity.badRequest().body("Post not found");
+        if (post.isEmpty()) return ResponseEntity.badRequest().body("Post not found");
 
         // current principal must be the author of post
         var author = post.get().getUser().getUsername();
@@ -168,8 +161,7 @@ public class PostController {
         }
 
         var post = postService.findById(uuid);
-        if (post.isEmpty())
-            return ResponseEntity.notFound().build();
+        if (post.isEmpty()) return ResponseEntity.notFound().build();
 
         var conv = new FullPostConverter();
         var dto = conv.toDto(post.get());
@@ -179,7 +171,7 @@ public class PostController {
 
     @GetMapping
     @Transactional
-    public ResponseEntity<Iterable<PostListDto>> getAllPosts() {
+    public ResponseEntity<Iterable<PostListDto>> getAllPosts(Authentication auth) {
         var postListConverter = new PostListConverter();
         var posts = postService.getAllPosts();
         var postDtos = new HashSet<PostListDto>();
@@ -188,6 +180,11 @@ public class PostController {
             postDto.setKarma(reactionService.getPostKarma(post.getId()));
             postDto.setCommentCount(commentService.getCountByPostId(post.getId()));
             postDtos.add(postDto);
+
+            if (auth != null) {
+                var userReaction = reactionService.findByUserAndPost(auth.getName(), post.getId());
+                userReaction.ifPresent(reaction -> postDto.setReaction(reaction.getReactionType()));
+            }
         }
         return ResponseEntity.ok(postDtos);
     }

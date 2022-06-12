@@ -2,6 +2,8 @@ package rs.ac.uns.ftn.redditclonesr272020.model;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import rs.ac.uns.ftn.redditclonesr272020.configuration.MyIdGenerator;
 
 import javax.persistence.*;
@@ -26,15 +28,18 @@ public class Reaction {
     @Column(name = "reaction_type", nullable = false)
     private ReactionType reactionType;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "user", nullable = false)
     private User user;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "post", nullable = true)
     private Post post;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "comment", nullable = true)
     private Comment comment;
 }

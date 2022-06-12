@@ -166,7 +166,7 @@ public class UserController {
 
     @GetMapping("{username}/posts")
     @Transactional
-    public ResponseEntity<Iterable<PostListDto>> getPosts(@PathVariable("username") String username){
+    public ResponseEntity<Iterable<PostListDto>> getPosts(@PathVariable("username") String username, Authentication auth){
         var conv = new PostListConverter();
         var posts = postService.findPostsByUser(username);
         var postDtos = new ArrayList<PostListDto>();
@@ -174,6 +174,12 @@ public class UserController {
             var postDto = conv.toDto(post);
             postDto.setCommentCount(commentService.getCountByPostId(postDto.getId()));
             postDto.setKarma(reactionService.getPostKarma(postDto.getId()));
+
+            if (auth != null){
+                var userReaction = reactionService.findByUserAndPost(auth.getName(), post.getId());
+                userReaction.ifPresent(reaction -> postDto.setReaction(reaction.getReactionType()));
+            }
+
             postDtos.add(postDto);
         }
         return ResponseEntity.ok(postDtos);

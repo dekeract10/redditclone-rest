@@ -72,8 +72,7 @@ public class CommunityController {
     @PostMapping()
     @Secured({"ROLE_USER", "ROLE_MOD", "ROLE_ADMIN"})
     public ResponseEntity<String> createCommunity(@Valid @RequestBody CommunityDto communityDto, BindingResult result, Authentication authentication) {
-        if (result.hasErrors())
-            return ResponseEntity.badRequest().body(result.getAllErrors().toString());
+        if (result.hasErrors()) return ResponseEntity.badRequest().body(result.getAllErrors().toString());
 
         try {
             var community = communityService.createCommunity(communityDto, authentication.getName());
@@ -81,7 +80,7 @@ public class CommunityController {
             return ResponseEntity.ok().body(community.getId().toString());
         } catch (UsernameNotFoundException e) {
             return ResponseEntity.badRequest().body("User is not valid");
-        } catch (Exception e){
+        } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
@@ -90,8 +89,7 @@ public class CommunityController {
     @Transactional
     public ResponseEntity<CommunityOverviewDto> getCommunity(@PathVariable String name) {
         var communityOpt = communityService.findCommunityByName(name);
-        if (communityOpt.isEmpty())
-            return ResponseEntity.notFound().build();
+        if (communityOpt.isEmpty()) return ResponseEntity.notFound().build();
 
         var communityConverter = new CommunityOverviewDtoConverter();
         var community = communityOpt.get();
@@ -115,8 +113,10 @@ public class CommunityController {
             int karma = reactionService.getPostKarma(postDto.getId());
             postDto.setKarma(karma);
 
-            var userReaction = reactionService.findByUserAndPost(auth.getName(), post.getId());
-            userReaction.ifPresent(reaction -> postDto.setReaction(reaction.getReactionType()));
+            if (auth != null) {
+                var userReaction = reactionService.findByUserAndPost(auth.getName(), post.getId());
+                userReaction.ifPresent(reaction -> postDto.setReaction(reaction.getReactionType()));
+            }
 
             postDtos.add(postDto);
         }
@@ -125,10 +125,9 @@ public class CommunityController {
 
     @GetMapping("{name}/flairs")
     @Transactional
-    public ResponseEntity<List<FlairDto>> getCommunityFlairs(@PathVariable String name){
+    public ResponseEntity<List<FlairDto>> getCommunityFlairs(@PathVariable String name) {
         var community = communityService.findCommunityByName(name);
-        if (community.isEmpty())
-            return ResponseEntity.notFound().build();
+        if (community.isEmpty()) return ResponseEntity.notFound().build();
 
         var flairDtos = community.get().getFlairs().stream().map(f -> new FlairDto(f.getId(), f.getName())).collect(Collectors.toList());
 
