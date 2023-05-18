@@ -33,10 +33,8 @@ public class ImageController {
     public ResponseEntity<Resource> getImage(@PathVariable("img") String imgPath){
         try{
             var file = imageService.getImage(imgPath);
-            if (file.isEmpty())
-                return ResponseEntity.notFound().build();
+            return file.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
 
-            return ResponseEntity.ok(file.get());
         } catch (Exception e) {
             return ResponseEntity.notFound().build();
         }

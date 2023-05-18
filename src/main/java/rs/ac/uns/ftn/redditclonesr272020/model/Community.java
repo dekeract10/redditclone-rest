@@ -2,6 +2,7 @@ package rs.ac.uns.ftn.redditclonesr272020.model;
 
 import lombok.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.elasticsearch.annotations.Document;
 import rs.ac.uns.ftn.redditclonesr272020.configuration.MyIdGenerator;
 
 import javax.persistence.*;

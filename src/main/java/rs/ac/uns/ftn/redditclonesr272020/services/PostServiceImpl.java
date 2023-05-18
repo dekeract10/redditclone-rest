@@ -1,15 +1,25 @@
 package rs.ac.uns.ftn.redditclonesr272020.services;
 
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.elasticsearch.core.ElasticsearchRestTemplate;
+import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
+import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.stereotype.Service;
 import rs.ac.uns.ftn.redditclonesr272020.model.Post;
+import rs.ac.uns.ftn.redditclonesr272020.model.indexing.IndexPost;
 import rs.ac.uns.ftn.redditclonesr272020.repositories.CommunityRepository;
 import rs.ac.uns.ftn.redditclonesr272020.repositories.FlairRepository;
 import rs.ac.uns.ftn.redditclonesr272020.repositories.PostRepository;
 import rs.ac.uns.ftn.redditclonesr272020.repositories.UserRepository;
 
 import javax.transaction.Transactional;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class PostServiceImpl implements PostService {
@@ -27,6 +37,11 @@ public class PostServiceImpl implements PostService {
 
     @Autowired
     private CommunityService communityService;
+
+    @Autowired
+    private PostIndexRepository postIndexRepository;
+
+    Logger logger = LoggerFactory.getLogger(PostServiceImpl.class);
 
     @Override
     public Iterable<Post> getAllPosts() {
@@ -74,5 +89,38 @@ public class PostServiceImpl implements PostService {
     @Override
     public Iterable<Post> findPostsByUser(String username) {
         return postRepository.findAllByUserUsername(username);
+    }
+
+    @Override
+    public void index(IndexPost indexPost) {
+        postIndexRepository.save(indexPost);
+    }
+
+    @Autowired
+    private ElasticsearchRestTemplate elasticsearchRestTemplate;
+
+    @Override
+    @Transactional
+    public Iterable<Post> searchPosts(String description, String title, String text) {
+        BoolQueryBuilder query = QueryBuilders.boolQuery();
+        if (description != null) {
+            query.must(QueryBuilders.matchQuery("descriptionPDF", description));
+        }
+        if (title != null) {
+            query.must(QueryBuilders.matchQuery("title", title));
+        }
+        if (text != null) {
+            query.must(QueryBuilders.matchQuery("text", text));
+         }
+
+        var searchQuery = new NativeSearchQueryBuilder()
+                .withQuery(query)
+                .build();
+        var indexPosts = elasticsearchRestTemplate.search(searchQuery, IndexPost.class, IndexCoordinates.of("posts_reddit"));
+
+        logger.info("found: {}", indexPosts);
+
+
+        return postRepository.findAllById( indexPosts.map(p -> UUID.fromString(p.getContent().getId())));
     }
 }

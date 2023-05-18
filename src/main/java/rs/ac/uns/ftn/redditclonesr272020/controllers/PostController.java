@@ -1,5 +1,7 @@
 package rs.ac.uns.ftn.redditclonesr272020.controllers;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -7,6 +9,7 @@ import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import rs.ac.uns.ftn.redditclonesr272020.converters.FullPostConverter;
 import rs.ac.uns.ftn.redditclonesr272020.converters.PostListConverter;
 import rs.ac.uns.ftn.redditclonesr272020.exceptions.CommunityNonExistentException;
@@ -17,12 +20,14 @@ import rs.ac.uns.ftn.redditclonesr272020.model.dto.FullPostDto;
 import rs.ac.uns.ftn.redditclonesr272020.model.dto.PostDto;
 import rs.ac.uns.ftn.redditclonesr272020.model.dto.PostListDto;
 import rs.ac.uns.ftn.redditclonesr272020.model.dto.PostUpdateDto;
+import rs.ac.uns.ftn.redditclonesr272020.model.indexing.IndexPost;
 import rs.ac.uns.ftn.redditclonesr272020.services.*;
 
 import javax.transaction.Transactional;
 import javax.validation.Valid;
 import java.time.LocalDate;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -50,10 +55,15 @@ public class PostController {
     @Autowired
     private ImageService imageService;
 
+    @Autowired
+    private PdfService pdfService;
+
+    Logger logger = LoggerFactory.getLogger(PostController.class);
+
     @PostMapping()
     @Secured({"ROLE_USER", "ROLE_ADMIN", "ROLE_MOD"})
     @Transactional
-    public ResponseEntity<String> createPost(@Valid @RequestBody PostDto postDto, BindingResult result, Authentication authentication) {
+    public ResponseEntity<String> createPost(@Valid @RequestPart("json") PostDto postDto, BindingResult result, Authentication authentication, @RequestPart(value = "pdf", required = false) MultipartFile pdf) {
         // Initial checks to validate entity
         if (result.hasErrors()) return ResponseEntity.badRequest().body("Post is not valid");
         if (postDto.getImagePath() == null && postDto.getText() == null)
@@ -71,6 +81,13 @@ public class PostController {
             postFlairs.add(flair);
         }
 
+        Optional<String> pdfPath = Optional.empty();
+        Optional<String> parsedText = Optional.empty();
+        if (pdf != null) {
+            pdfPath = pdfService.saveFile(pdf);
+            parsedText = pdfService.parsePdf(pdf);
+        }
+
         // Create the entity
         Post post = new Post();
         post.setFlairs(postFlairs);
@@ -79,15 +96,24 @@ public class PostController {
         post.setImagePath(postDto.getImagePath());
         post.setUser(author.get());
         post.setCreationDate(LocalDate.now());
+        pdfPath.ifPresent(post::setPdfPath);
 
         try {
             community.get().getPosts().add(post);
             communityService.update(community.get());
+
+            var indexPostBuilder = IndexPost.builder().text(post.getText()).id(post.getId().toString()).title(post.getTitle());
+            pdfPath.ifPresent(indexPostBuilder::postPDFPath);
+            parsedText.ifPresent(indexPostBuilder::descriptionPDF);
+            postService.index(indexPostBuilder.build());
+
             return ResponseEntity.ok().body(post.getId().toString());
         } catch (CommunityNonExistentException e) {
             return ResponseEntity.badRequest().body("Community not valid");
         } catch (UserBannedException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("User is banned in this community");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal server error");
         }
     }
 
@@ -108,7 +134,8 @@ public class PostController {
             return ResponseEntity.badRequest().body("Authenticated user is not the author of post.");
 
         postService.delete(post.get());
-        imageService.delete(post.get().getImagePath());
+        if (post.get().getImagePath() != null && !post.get().getImagePath().isEmpty())
+            imageService.delete(post.get().getImagePath());
 //        communityService.findByName(post.get().)
         return ResponseEntity.ok().body("Deleted successfully");
     }
@@ -134,7 +161,7 @@ public class PostController {
             return ResponseEntity.badRequest().body("Authenticated user is not the author of post.");
 
         //
-        if (!post.get().getImagePath().isEmpty() && !postDto.getText().isEmpty())
+        if (post.get().getImagePath() != null && !post.get().getImagePath().isEmpty() && !postDto.getText().isEmpty())
             return ResponseEntity.badRequest().body("Cannot update image post with text");
 
         var p = post.get();
@@ -171,9 +198,16 @@ public class PostController {
 
     @GetMapping
     @Transactional
-    public ResponseEntity<Iterable<PostListDto>> getAllPosts(Authentication auth) {
+    public ResponseEntity<Iterable<PostListDto>> getAllPosts(Authentication auth, @RequestParam(value = "description", required = false) String description,
+                                                             @RequestParam(value = "title", required = false) String title, @RequestParam(value = "text", required = false) String text) {
         var postListConverter = new PostListConverter();
-        var posts = postService.getAllPosts();
+        Iterable<Post> posts;
+        if (description != null || title != null || text != null) {
+            logger.info("Searching posts with query: title: {}, description: {}, text: {}", title, description, text);
+            posts = postService.searchPosts(description, title, text);
+        } else {
+            posts = postService.getAllPosts();
+        }
         var postDtos = new HashSet<PostListDto>();
         for (var post : posts) {
             var postDto = postListConverter.toDto(post);

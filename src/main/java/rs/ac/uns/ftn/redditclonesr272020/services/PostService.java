@@ -2,6 +2,7 @@ package rs.ac.uns.ftn.redditclonesr272020.services;
 
 import org.springframework.stereotype.Service;
 import rs.ac.uns.ftn.redditclonesr272020.model.Post;
+import rs.ac.uns.ftn.redditclonesr272020.model.indexing.IndexPost;
 
 import javax.transaction.Transactional;
 import java.util.Optional;
@@ -18,4 +19,7 @@ public interface PostService {
     void delete(Post post);
 
     Iterable<Post> findPostsByUser(String username);
+
+    void index(IndexPost indexPost);
+    Iterable<Post> searchPosts(String description, String title, String text);
 }

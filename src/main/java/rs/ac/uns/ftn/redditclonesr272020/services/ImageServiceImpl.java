@@ -9,10 +9,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.imageio.ImageIO;
-import javax.imageio.ImageReader;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -68,9 +66,7 @@ public class ImageServiceImpl implements ImageService {
         logger.info("Image path: {}", path);
         try {
             if (scaledImage != null) {
-//                ImageIO.write(scaledImage, ".jpg", path.toFile());
                 ImageIO.write(scaledImage, "jpg", path.toFile());
-//                Files.write(path, scaledImage.);
             }
         } catch (Exception e) {
             logger.error("Error saving image: {}", e.getMessage());

@@ -1,14 +1,13 @@
 package rs.ac.uns.ftn.redditclonesr272020.model;
 
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import rs.ac.uns.ftn.redditclonesr272020.configuration.MyIdGenerator;
 
 import javax.persistence.*;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -17,6 +16,7 @@ import java.util.UUID;
 @Getter
 @Setter
 public class Post {
+
     public Post() {
         super();
         this.id = MyIdGenerator.generateId();
@@ -38,11 +38,15 @@ public class Post {
     @Column(name = "image_path", nullable = true)
     private String imagePath;
 
+    @Column(name = "pdf_path", nullable = true)
+    private String pdfPath;
+
+
     @ManyToOne
     private Community community;
 
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private Set<Flair> flairs = new java.util.HashSet<>();
+    private Set<Flair> flairs = new HashSet<>();
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
