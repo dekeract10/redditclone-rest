@@ -57,6 +57,12 @@ public class Community implements Serializable {
     @Column(name = "suspension_reason", nullable = true)
     private String suspensionReason;
 
+    @Column(name = "pdf_path", nullable = true)
+    private String pdfPath;
+
+    @Column(name = "pdf_name", nullable = true)
+    private String pdfName;
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

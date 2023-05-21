@@ -11,15 +11,13 @@ import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilde
 import org.springframework.stereotype.Service;
 import rs.ac.uns.ftn.redditclonesr272020.model.Post;
 import rs.ac.uns.ftn.redditclonesr272020.model.indexing.IndexPost;
-import rs.ac.uns.ftn.redditclonesr272020.repositories.CommunityRepository;
-import rs.ac.uns.ftn.redditclonesr272020.repositories.FlairRepository;
-import rs.ac.uns.ftn.redditclonesr272020.repositories.PostRepository;
-import rs.ac.uns.ftn.redditclonesr272020.repositories.UserRepository;
+import rs.ac.uns.ftn.redditclonesr272020.repositories.*;
 
 import javax.transaction.Transactional;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class PostServiceImpl implements PostService {
@@ -84,6 +82,7 @@ public class PostServiceImpl implements PostService {
     @Transactional
     public void delete(Post post) {
         postRepository.delete(post);
+        postIndexRepository.deleteById(post.getId().toString());
     }
 
     @Override
@@ -99,9 +98,12 @@ public class PostServiceImpl implements PostService {
     @Autowired
     private ElasticsearchRestTemplate elasticsearchRestTemplate;
 
+    @Autowired
+    private ReactionRepository reactionRepository;
+
     @Override
     @Transactional
-    public Iterable<Post> searchPosts(String description, String title, String text) {
+    public Iterable<Post> searchPosts(String description, String title, String text, Integer minKarma, Integer maxKarma) {
         BoolQueryBuilder query = QueryBuilders.boolQuery();
         if (description != null) {
             query.must(QueryBuilders.matchQuery("descriptionPDF", description));
@@ -117,10 +119,12 @@ public class PostServiceImpl implements PostService {
                 .withQuery(query)
                 .build();
         var indexPosts = elasticsearchRestTemplate.search(searchQuery, IndexPost.class, IndexCoordinates.of("posts_reddit"));
+        var posts = postRepository.findAllById( indexPosts.map(p -> UUID.fromString(p.getContent().getId())));
+        return posts.stream().filter(p -> karmaRange(p.getId(), minKarma, maxKarma)).collect(Collectors.toList());
+    }
 
-        logger.info("found: {}", indexPosts);
-
-
-        return postRepository.findAllById( indexPosts.map(p -> UUID.fromString(p.getContent().getId())));
+    private boolean karmaRange(UUID postId, Integer min, Integer max) {
+        var karma = reactionRepository.getKarmaForPost(postId);
+        return (min == null || karma > min) && (max == null || karma < max);
     }
 }

@@ -22,6 +22,7 @@ public class PostListConverter implements Converter<Post, PostListDto> {
                 .userUsername(p.getUser().getUsername())
                 .userDisplayName(p.getUser().getDisplayName())
                 .communityName(p.getCommunity().getName())
+                .pdfName(p.getPdfName())
                 .build();
     }
 }

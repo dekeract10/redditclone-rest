@@ -1,6 +1,7 @@
 package rs.ac.uns.ftn.redditclonesr272020.model.dto;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -13,6 +14,7 @@ import java.util.UUID;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class CommunityGroupDto implements Serializable {
     private UUID id;
     private Set<String> moderatorUsernames;
@@ -23,4 +25,7 @@ public class CommunityGroupDto implements Serializable {
     private List<UUID> ruleIds;
     private boolean isSuspended;
     private String suspensionReason;
+    private double averageKarma;
+    private String pdfPath;
+    private String pdfName;
 }

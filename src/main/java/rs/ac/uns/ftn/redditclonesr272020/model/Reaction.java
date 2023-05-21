@@ -1,5 +1,6 @@
 package rs.ac.uns.ftn.redditclonesr272020.model;
 
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.OnDelete;

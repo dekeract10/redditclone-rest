@@ -7,7 +7,6 @@ import rs.ac.uns.ftn.redditclonesr272020.configuration.MyIdGenerator;
 import javax.persistence.*;
 import java.time.LocalDate;
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -16,7 +15,6 @@ import java.util.UUID;
 @Getter
 @Setter
 public class Post {
-
     public Post() {
         super();
         this.id = MyIdGenerator.generateId();
@@ -41,6 +39,8 @@ public class Post {
     @Column(name = "pdf_path", nullable = true)
     private String pdfPath;
 
+    @Column(name = "pdf_name", nullable = true)
+    private String pdfName;
 
     @ManyToOne
     private Community community;

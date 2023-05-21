@@ -13,16 +13,6 @@ import java.util.stream.Collectors;
 public class CommunityOverviewDtoConverter implements Converter<Community, CommunityOverviewDto> {
     @Override
     public CommunityOverviewDto toDto(Community community) {
-        return new CommunityOverviewDto(
-                community.getId(),
-                community.getModerators().stream().map(moderator -> new ModeratorDto(moderator.getUsername(), moderator.getDisplayName())).collect(Collectors.toSet()),
-                community.getFlairs().stream().map(Flair::getName).collect(Collectors.toSet()),
-                community.getName(),
-                community.getDescription(),
-                community.getCreationDate(),
-                community.getRules().stream().map(Rule::getText).collect(Collectors.toList()),
-                community.isSuspended(),
-                community.getSuspensionReason()
-                );
+        return CommunityOverviewDto.builder().id(community.getId()).moderators(community.getModerators().stream().map(moderator -> new ModeratorDto(moderator.getUsername(), moderator.getDisplayName())).collect(Collectors.toSet())).flairNames(community.getFlairs().stream().map(Flair::getName).collect(Collectors.toSet())).name(community.getName()).description(community.getDescription()).creationDate(community.getCreationDate()).ruleTexts(community.getRules().stream().map(Rule::getText).collect(Collectors.toList())).isSuspended(community.isSuspended()).suspensionReason(community.getSuspensionReason()).pdfPath(community.getPdfPath()).pdfName(community.getPdfName()).build();
     }
 }

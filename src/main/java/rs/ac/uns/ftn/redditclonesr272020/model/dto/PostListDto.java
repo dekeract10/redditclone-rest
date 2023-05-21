@@ -18,6 +18,7 @@ public class PostListDto implements Serializable {
     private final LocalDate creationDate;
     private final String imagePath;
     private final String pdfPath;
+    private final String pdfName;
     private final Set<String> flairNames;
     private final String userUsername;
     private final String userDisplayName;

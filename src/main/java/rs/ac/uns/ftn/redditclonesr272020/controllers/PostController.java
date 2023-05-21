@@ -16,6 +16,8 @@ import rs.ac.uns.ftn.redditclonesr272020.exceptions.CommunityNonExistentExceptio
 import rs.ac.uns.ftn.redditclonesr272020.exceptions.UserBannedException;
 import rs.ac.uns.ftn.redditclonesr272020.model.Flair;
 import rs.ac.uns.ftn.redditclonesr272020.model.Post;
+import rs.ac.uns.ftn.redditclonesr272020.model.Reaction;
+import rs.ac.uns.ftn.redditclonesr272020.model.ReactionType;
 import rs.ac.uns.ftn.redditclonesr272020.model.dto.FullPostDto;
 import rs.ac.uns.ftn.redditclonesr272020.model.dto.PostDto;
 import rs.ac.uns.ftn.redditclonesr272020.model.dto.PostListDto;
@@ -63,7 +65,9 @@ public class PostController {
     @PostMapping()
     @Secured({"ROLE_USER", "ROLE_ADMIN", "ROLE_MOD"})
     @Transactional
-    public ResponseEntity<String> createPost(@Valid @RequestPart("json") PostDto postDto, BindingResult result, Authentication authentication, @RequestPart(value = "pdf", required = false) MultipartFile pdf) {
+    public ResponseEntity<String> createPost(@Valid @RequestPart("json") PostDto postDto, BindingResult result,
+                                             Authentication authentication, @RequestPart(value = "pdf", required =
+            false) MultipartFile pdf) {
         // Initial checks to validate entity
         if (result.hasErrors()) return ResponseEntity.badRequest().body("Post is not valid");
         if (postDto.getImagePath() == null && postDto.getText() == null)
@@ -101,8 +105,16 @@ public class PostController {
         try {
             community.get().getPosts().add(post);
             communityService.update(community.get());
+            var autoUpvoteReaction = new Reaction();
 
-            var indexPostBuilder = IndexPost.builder().text(post.getText()).id(post.getId().toString()).title(post.getTitle());
+            // Autoupvote
+            autoUpvoteReaction.setReactionType(ReactionType.UPVOTE);
+            autoUpvoteReaction.setPost(post);
+            autoUpvoteReaction.setUser(post.getUser());
+            reactionService.save(autoUpvoteReaction);
+
+            var indexPostBuilder =
+                    IndexPost.builder().text(post.getText()).id(post.getId().toString()).title(post.getTitle());
             pdfPath.ifPresent(indexPostBuilder::postPDFPath);
             parsedText.ifPresent(indexPostBuilder::descriptionPDF);
             postService.index(indexPostBuilder.build());
@@ -136,12 +148,13 @@ public class PostController {
         postService.delete(post.get());
         if (post.get().getImagePath() != null && !post.get().getImagePath().isEmpty())
             imageService.delete(post.get().getImagePath());
-//        communityService.findByName(post.get().)
+        //        communityService.findByName(post.get().)
         return ResponseEntity.ok().body("Deleted successfully");
     }
 
     @PutMapping("{id}")
-    public ResponseEntity<String> updatePost(@PathVariable("id") String id, Authentication authentication, @RequestBody PostUpdateDto postDto, BindingResult result) {
+    public ResponseEntity<String> updatePost(@PathVariable("id") String id, Authentication authentication,
+                                             @RequestBody PostUpdateDto postDto, BindingResult result) {
         // post is valid
         if (result.hasErrors()) return ResponseEntity.badRequest().body("Invalid JSON");
 
@@ -198,13 +211,14 @@ public class PostController {
 
     @GetMapping
     @Transactional
-    public ResponseEntity<Iterable<PostListDto>> getAllPosts(Authentication auth, @RequestParam(value = "description", required = false) String description,
-                                                             @RequestParam(value = "title", required = false) String title, @RequestParam(value = "text", required = false) String text) {
+    public ResponseEntity<Iterable<PostListDto>> getAllPosts(Authentication auth, @RequestParam(value = "description"
+            , required = false) String description, @RequestParam(value = "title", required = false) String title,
+                                                             @RequestParam(value = "text", required = false) String text, @RequestParam(value = "min_karma", required = false) Integer minKarma, @RequestParam(value = "max_karma", required = false) Integer maxKarma) {
         var postListConverter = new PostListConverter();
         Iterable<Post> posts;
-        if (description != null || title != null || text != null) {
+        if (description != null || title != null || text != null || minKarma != null || maxKarma != null) {
             logger.info("Searching posts with query: title: {}, description: {}, text: {}", title, description, text);
-            posts = postService.searchPosts(description, title, text);
+            posts = postService.searchPosts(description, title, text, minKarma, maxKarma);
         } else {
             posts = postService.getAllPosts();
         }

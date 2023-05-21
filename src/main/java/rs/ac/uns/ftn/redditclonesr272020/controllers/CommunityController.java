@@ -8,8 +8,10 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import rs.ac.uns.ftn.redditclonesr272020.converters.CommunityOverviewDtoConverter;
 import rs.ac.uns.ftn.redditclonesr272020.converters.PostListConverter;
+import rs.ac.uns.ftn.redditclonesr272020.model.Community;
 import rs.ac.uns.ftn.redditclonesr272020.model.Flair;
 import rs.ac.uns.ftn.redditclonesr272020.model.Rule;
 import rs.ac.uns.ftn.redditclonesr272020.model.User;
@@ -50,8 +52,18 @@ public class CommunityController {
     @GetMapping()
     @Secured({"ROLE_USER", "ROLE_MOD", "ROLE_ADMIN"})
     @Transactional
-    public ResponseEntity<Iterable<CommunityGroupDto>> getAllCommunities() {
-        var communities = communityService.findAll();
+    public ResponseEntity<Iterable<CommunityGroupDto>> getAllCommunities(@RequestParam(value = "description",
+            required = false) String description, @RequestParam(value = "name", required = false) String name,
+                                                                         @RequestParam(value = "descriptionPDF",
+                                                                                 required = false) String descriptionPDF,
+                                                                         @RequestParam(value = "min_posts", required = false) Integer minPosts,
+                                                                         @RequestParam(value = "max_posts", required = false) Integer maxPosts) {
+        Iterable<Community> communities;
+        if (description != null || name != null || descriptionPDF != null || minPosts != null || maxPosts != null ) {
+            communities = communityService.search(description, name, descriptionPDF, minPosts, maxPosts);
+        } else {
+            communities = communityService.findAll();
+        }
         var communitiesDto = new ArrayList<CommunityGroupDto>();
         for (var community : communities) {
             var communityDto = new CommunityGroupDto();
@@ -64,6 +76,10 @@ public class CommunityController {
             communityDto.setSuspended(community.isSuspended());
             communityDto.setSuspensionReason(community.getSuspensionReason());
             communityDto.setRuleIds(community.getRules().stream().map(Rule::getId).collect(Collectors.toList()));
+            communityDto.setAverageKarma(community.getPosts().stream().mapToDouble(p -> reactionService.getPostKarma(p.getId())).average().orElse(0));
+            communityDto.setPdfPath(community.getPdfPath());
+            communityDto.setPdfName(community.getPdfName());
+
             communitiesDto.add(communityDto);
         }
         return ResponseEntity.ok(communitiesDto);
@@ -71,11 +87,13 @@ public class CommunityController {
 
     @PostMapping()
     @Secured({"ROLE_USER", "ROLE_MOD", "ROLE_ADMIN"})
-    public ResponseEntity<String> createCommunity(@Valid @RequestBody CommunityDto communityDto, BindingResult result, Authentication authentication) {
+    public ResponseEntity<String> createCommunity(@Valid @RequestPart("json") CommunityDto communityDto,
+                                                  BindingResult result, Authentication authentication,
+                                                  @RequestPart(value = "pdf", required = false) MultipartFile pdf) {
         if (result.hasErrors()) return ResponseEntity.badRequest().body(result.getAllErrors().toString());
 
         try {
-            var community = communityService.createCommunity(communityDto, authentication.getName());
+            var community = communityService.createCommunity(communityDto, authentication.getName(), pdf);
 
             return ResponseEntity.ok().body(community.getId().toString());
         } catch (UsernameNotFoundException e) {
@@ -129,7 +147,8 @@ public class CommunityController {
         var community = communityService.findCommunityByName(name);
         if (community.isEmpty()) return ResponseEntity.notFound().build();
 
-        var flairDtos = community.get().getFlairs().stream().map(f -> new FlairDto(f.getId(), f.getName())).collect(Collectors.toList());
+        var flairDtos =
+                community.get().getFlairs().stream().map(f -> new FlairDto(f.getId(), f.getName())).collect(Collectors.toList());
 
         return ResponseEntity.ok(flairDtos);
     }

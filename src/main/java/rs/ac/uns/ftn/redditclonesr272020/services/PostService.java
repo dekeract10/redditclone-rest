@@ -21,5 +21,5 @@ public interface PostService {
     Iterable<Post> findPostsByUser(String username);
 
     void index(IndexPost indexPost);
-    Iterable<Post> searchPosts(String description, String title, String text);
+    Iterable<Post> searchPosts(String description, String title, String text, Integer minKarma, Integer maxKarma);
 }

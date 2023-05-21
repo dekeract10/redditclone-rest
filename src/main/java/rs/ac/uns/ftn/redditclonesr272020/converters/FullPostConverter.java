@@ -9,17 +9,6 @@ import java.util.stream.Collectors;
 public class FullPostConverter implements Converter<Post, FullPostDto> {
     @Override
     public FullPostDto toDto(Post model) {
-        return new FullPostDto(
-                model.getId(),
-                model.getTitle(),
-                model.getText(),
-                model.getCreationDate(),
-                model.getImagePath(),
-                model.getFlairs().stream().map(f -> new FlairDto(f.getId(), f.getName())).collect(Collectors.toSet()),
-                model.getUser().getId(),
-                model.getUser().getUsername(),
-                model.getUser().getAvatar(),
-                model.getUser().getDisplayName()
-        );
+        return FullPostDto.builder().id(model.getId()).title(model.getTitle()).text(model.getText()).creationDate(model.getCreationDate()).imagePath(model.getImagePath()).flairs(model.getFlairs().stream().map(f -> new FlairDto(f.getId(), f.getName())).collect(Collectors.toSet())).userId(model.getUser().getId()).userUsername(model.getUser().getUsername()).userAvatar(model.getUser().getAvatar()).userDisplayName(model.getUser().getDisplayName()).pdfPath(model.getPdfPath()).pdfName(model.getPdfName()).build();
     }
 }
