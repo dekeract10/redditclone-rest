@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.net.MalformedURLException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
@@ -23,7 +24,7 @@ public class PdfServiceImpl implements PdfService {
     Logger logger = LoggerFactory.getLogger(PdfServiceImpl.class);
 
     @Override
-    public Optional<String> saveFile(MultipartFile pdf){
+    public Optional<String> saveFile(MultipartFile pdf) {
         try {
             logger.info("PDF size: {}", pdf.getSize());
             var pdfName = UUID.randomUUID() + ".pdf";
@@ -60,6 +61,17 @@ public class PdfServiceImpl implements PdfService {
             logger.error("Couldn't load pdf: {}", e.getMessage());
         }
         return Optional.empty();
+    }
+
+    @Override
+    public boolean delete(String pdfPath) {
+        Path path = Paths.get(pdfDir).resolve(pdfPath);
+        try {
+            Files.deleteIfExists(path);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 }
 

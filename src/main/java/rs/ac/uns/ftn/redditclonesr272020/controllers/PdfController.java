@@ -19,11 +19,12 @@ import java.util.Optional;
 public class PdfController {
     @Autowired
     private PdfService pdfService;
+
     @GetMapping("{pdf}")
     public ResponseEntity<Resource> getPdf(@PathVariable("pdf") String pdfPath) {
         try {
             var fileOpt = pdfService.getPdf(pdfPath);
-            if (fileOpt.isEmpty()){
+            if (fileOpt.isEmpty()) {
                 return ResponseEntity.notFound().build();
             }
             long length = fileOpt.get().contentLength();

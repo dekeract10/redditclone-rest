@@ -78,11 +78,14 @@ public class PostServiceImpl implements PostService {
         return postRepository.findById(id);
     }
 
+    @Autowired
+    private PdfService pdfService;
     @Override
     @Transactional
     public void delete(Post post) {
         postRepository.delete(post);
         postIndexRepository.deleteById(post.getId().toString());
+        pdfService.delete(post.getPdfPath());
     }
 
     @Override

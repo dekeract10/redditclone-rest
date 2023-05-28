@@ -13,7 +13,10 @@ public interface PdfService {
     Persists a file to disk and returns filename
      */
     Optional<String> saveFile(MultipartFile pdf);
+
     Optional<String> parsePdf(MultipartFile file);
 
     Optional<Resource> getPdf(String imgPath) throws MalformedURLException;
+
+    boolean delete(String pdfPath);
 }
